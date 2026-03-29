@@ -4,10 +4,22 @@ import { Header } from "./components/Header";
 import { DashboardContent } from "./components/DashboardContent";
 import { Tasks } from "./components/Tasks";
 import { AIAssistant } from "./components/AIAssistant";
+import { Home } from "./pages/Home";
+import { DenaPaona } from "./pages/DenaPaona";
+import { IncomeExpense } from "./pages/IncomeExpense";
+import { Savings } from "./pages/Savings";
+import { Notebook } from "./pages/Notebook";
+import { MarketCalculator } from "./pages/MarketCalculator";
+import { Alarm } from "./pages/Alarm";
+import { Calculator } from "./pages/Calculator";
+import { TakaGunun } from "./pages/TakaGunun";
+import { AuthProvider, useAuth } from "./lib/AuthContext";
+import { Login } from "./components/Login";
 
-export default function App() {
-  const [activeTab, setActiveTab] = useState("dashboard");
+function AppContent() {
+  const [activeTab, setActiveTab] = useState("home");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     if (isDarkMode) {
@@ -19,8 +31,34 @@ export default function App() {
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center bg-purple-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div></div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
   const renderContent = () => {
     switch (activeTab) {
+      case "home":
+        return <Home onNavigate={setActiveTab} />;
+      case "dena-paona":
+        return <DenaPaona onBack={() => setActiveTab("home")} />;
+      case "income-expense":
+        return <IncomeExpense onBack={() => setActiveTab("home")} />;
+      case "savings":
+        return <Savings onBack={() => setActiveTab("home")} />;
+      case "notes":
+        return <Notebook onBack={() => setActiveTab("home")} />;
+      case "market-calculator":
+        return <MarketCalculator onBack={() => setActiveTab("home")} />;
+      case "taka-gunun":
+        return <TakaGunun onBack={() => setActiveTab("home")} />;
+      case "alarm":
+        return <Alarm onBack={() => setActiveTab("home")} />;
+      case "calculator":
+        return <Calculator onBack={() => setActiveTab("home")} />;
       case "dashboard":
         return <DashboardContent />;
       case "tasks":
@@ -38,15 +76,31 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="hidden md:block">
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      </div>
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+        <div className="hidden md:block">
+          <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+        </div>
         
-        <main className="flex-1 overflow-y-auto bg-background">
-          {renderContent()}
+        <main className="flex-1 overflow-y-auto bg-background md:p-4 lg:p-6">
+          <div className="h-full w-full md:max-w-[400px] mx-auto bg-gray-50 md:rounded-[2.5rem] md:shadow-2xl overflow-hidden md:border-[8px] border-gray-800 relative">
+            <div className="h-full overflow-y-auto custom-scrollbar">
+              {renderContent()}
+            </div>
+          </div>
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

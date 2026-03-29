@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A financial transaction (income or expense)",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Description of the transaction" },
+        "amount": { "type": "number", "description": "Amount of money" },
+        "date": { "type": "string", "description": "Date of transaction in DD/MM/YYYY format" },
+        "type": { "type": "string", "enum": ["income", "expense"], "description": "Type of transaction" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["title", "amount", "date", "type", "uid", "createdAt"]
+    },
+    "DenaPaona": {
+      "title": "DenaPaona",
+      "description": "A person involved in debt/receivable",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the person" },
+        "phone": { "type": "string", "description": "Phone number" },
+        "address": { "type": "string", "description": "Address" },
+        "paona": { "type": "number", "description": "Amount they owe you (receivable)" },
+        "dena": { "type": "number", "description": "Amount you owe them (debt)" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["name", "phone", "address", "paona", "dena", "uid", "createdAt"]
+    },
+    "Saving": {
+      "title": "Saving",
+      "description": "A savings record",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Description of the saving" },
+        "amount": { "type": "number", "description": "Amount of money" },
+        "date": { "type": "string", "description": "Date in DD/MM/YYYY format" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["title", "amount", "date", "uid", "createdAt"]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "A personal note",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the note" },
+        "content": { "type": "string", "description": "Content of the note" },
+        "date": { "type": "string", "description": "Date in DD/MM/YYYY format" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" },
+        "color": { "type": "string", "description": "Color theme of the note" }
+      },
+      "required": ["title", "content", "date", "uid", "createdAt", "color"]
+    },
+    "Alarm": {
+      "title": "Alarm",
+      "description": "An alarm record",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the alarm" },
+        "time": { "type": "string", "description": "Time in HH:MM format" },
+        "isActive": { "type": "boolean", "description": "Whether the alarm is active" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["title", "time", "isActive", "uid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Collection of all income and expense transactions"
+    },
+    "/denaPaona/{recordId}": {
+      "schema": { "$ref": "#/entities/DenaPaona" },
+      "description": "Collection of all debts and receivables"
+    },
+    "/savings/{savingId}": {
+      "schema": { "$ref": "#/entities/Saving" },
+      "description": "Collection of all savings records"
+    },
+    "/notes/{noteId}": {
+      "schema": { "$ref": "#/entities/Note" },
+      "description": "Collection of all personal notes"
+    },
+    "/alarms/{alarmId}": {
+      "schema": { "$ref": "#/entities/Alarm" },
+      "description": "Collection of all alarms"
+    }
+  }
+}
