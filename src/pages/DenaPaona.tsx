@@ -33,8 +33,7 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
 
     const q = query(
       collection(db, 'denaPaona'),
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc')
+      where('uid', '==', auth.currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -42,6 +41,14 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
       snapshot.forEach((doc) => {
         peopleData.push({ id: doc.id, ...doc.data() } as DenaPaonaPerson);
       });
+      
+      // Sort client-side to avoid requiring a composite index
+      peopleData.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA;
+      });
+      
       setPeople(peopleData);
     }, (error) => {
       console.error("Error fetching dena paona:", error);

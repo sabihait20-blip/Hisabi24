@@ -22,8 +22,7 @@ export function Alarm({ onBack }: { onBack: () => void }) {
 
     const q = query(
       collection(db, 'alarms'),
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc')
+      where('uid', '==', auth.currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -31,6 +30,14 @@ export function Alarm({ onBack }: { onBack: () => void }) {
       snapshot.forEach((doc) => {
         alarmsData.push({ id: doc.id, ...doc.data() } as AlarmItem);
       });
+      
+      // Sort client-side to avoid requiring a composite index
+      alarmsData.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA;
+      });
+      
       setAlarms(alarmsData);
     }, (error) => {
       console.error("Error fetching alarms:", error);

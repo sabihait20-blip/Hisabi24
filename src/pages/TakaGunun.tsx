@@ -22,7 +22,7 @@ export function TakaGunun({ onBack }: { onBack: () => void }) {
   };
 
   const totalAmount = DENOMINATIONS.reduce((sum, denom) => sum + (denom * counts[denom]), 0);
-  const totalNotes = Object.values(counts).reduce((sum, count) => sum + count, 0);
+  const totalNotes = (Object.values(counts) as number[]).reduce((sum, count) => sum + count, 0);
 
   return (
     <div className="bg-gray-50 min-h-screen pb-32 relative">

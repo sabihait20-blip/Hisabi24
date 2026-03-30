@@ -45,6 +45,16 @@ service cloud.firestore {
     //   - createdAt: timestamp (required, immutable)
     //   - color: string (required, <= 20 chars)
     //
+    // Collection: fards
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, < 100 chars)
+    //   - items: list (required, <= 100 items)
+    //   - date: string (required, <= 20 chars)
+    //   - uid: string (required, immutable)
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (required)
+    //
     // ===============================================================
 
     // Helper Functions
@@ -110,7 +120,7 @@ service cloud.firestore {
              data.date is string && data.date.size() <= 20 &&
              data.uid is string && data.uid.size() > 0 &&
              data.createdAt is timestamp &&
-             data.color is string && data.color.size() <= 20;
+             data.color is string && data.color.size() <= 50;
     }
 
     function isValidAlarm(data) {
@@ -118,6 +128,30 @@ service cloud.firestore {
              data.title is string && data.title.size() < 100 &&
              data.time is string && data.time.size() <= 5 &&
              data.isActive is bool &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidFardItems(items) {
+      return items is list && items.size() <= 100;
+    }
+
+    function isValidFard(data) {
+      return hasRequiredFields(['title', 'items', 'date', 'uid', 'createdAt', 'updatedAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
+             isValidFardItems(data.items) &&
+             data.date is string && data.date.size() <= 20 &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    function isValidSavingsAccount(data) {
+      return hasRequiredFields(['name', 'accountNumber', 'balance', 'uid', 'createdAt']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.accountNumber is string && data.accountNumber.size() > 0 && data.accountNumber.size() < 50 &&
+             (!('address' in data) || (data.address is string && data.address.size() <= 200)) &&
+             data.balance is number &&
              data.uid is string && data.uid.size() > 0 &&
              data.createdAt is timestamp;
     }
@@ -143,6 +177,13 @@ service cloud.firestore {
       allow delete: if isDocOwner();
     }
 
+    match /savings_accounts/{accountId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidSavingsAccount(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidSavingsAccount(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
     match /notes/{noteId} {
       allow read: if isDocOwner();
       allow create: if isAuthenticated() && isValidNote(request.resource.data) && uidUnchanged();
@@ -154,6 +195,13 @@ service cloud.firestore {
       allow read: if isDocOwner();
       allow create: if isAuthenticated() && isValidAlarm(request.resource.data) && uidUnchanged();
       allow update: if isDocOwner() && isValidAlarm(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    match /fards/{fardId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidFard(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidFard(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isDocOwner();
     }
   }

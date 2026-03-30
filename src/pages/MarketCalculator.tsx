@@ -4,9 +4,7 @@ import { toBenNum } from '../lib/bengali';
 
 export function MarketCalculator({ onBack }: { onBack: () => void }) {
   const [items, setItems] = useState([
-    { id: 1, name: 'চাল', price: 65, quantity: 5, unit: 'কেজি' },
-    { id: 2, name: 'ডাল', price: 120, quantity: 1, unit: 'কেজি' },
-    { id: 3, name: 'তেল', price: 165, quantity: 2, unit: 'লিটার' },
+    { id: Date.now(), name: '', price: 0, quantity: 1, unit: 'টি' }
   ]);
 
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);

@@ -10,9 +10,11 @@ import { IncomeExpense } from "./pages/IncomeExpense";
 import { Savings } from "./pages/Savings";
 import { Notebook } from "./pages/Notebook";
 import { MarketCalculator } from "./pages/MarketCalculator";
+import { Ford } from "./pages/Ford";
 import { Alarm } from "./pages/Alarm";
 import { Calculator } from "./pages/Calculator";
 import { TakaGunun } from "./pages/TakaGunun";
+import { Settings } from "./pages/Settings";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import { Login } from "./components/Login";
 
@@ -53,12 +55,16 @@ function AppContent() {
         return <Notebook onBack={() => setActiveTab("home")} />;
       case "market-calculator":
         return <MarketCalculator onBack={() => setActiveTab("home")} />;
+      case "ford":
+        return <Ford onBack={() => setActiveTab("home")} />;
       case "taka-gunun":
         return <TakaGunun onBack={() => setActiveTab("home")} />;
       case "alarm":
         return <Alarm onBack={() => setActiveTab("home")} />;
       case "calculator":
         return <Calculator onBack={() => setActiveTab("home")} />;
+      case "settings":
+        return <Settings onBack={() => setActiveTab("home")} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />;
       case "dashboard":
         return <DashboardContent />;
       case "tasks":
@@ -82,7 +88,7 @@ function AppContent() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="hidden md:block">
-          <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+          <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} setActiveTab={setActiveTab} />
         </div>
         
         <main className="flex-1 overflow-y-auto bg-background md:p-4 lg:p-6">

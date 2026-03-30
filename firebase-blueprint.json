@@ -68,6 +68,44 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
       },
       "required": ["title", "time", "isActive", "uid", "createdAt"]
+    },
+    "SavingsAccount": {
+      "title": "Savings Account",
+      "description": "A savings account profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Bank or institution name" },
+        "accountNumber": { "type": "string", "description": "Account number" },
+        "address": { "type": "string", "description": "Branch or address" },
+        "balance": { "type": "number", "description": "Current balance" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["name", "accountNumber", "balance", "uid", "createdAt"]
+    },
+    "Fard": {
+      "title": "Fard",
+      "description": "A shopping list or memo",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the list" },
+        "items": { 
+          "type": "array", 
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "isCompleted": { "type": "boolean" }
+            }
+          }
+        },
+        "date": { "type": "string", "description": "Date of creation" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of last update" }
+      },
+      "required": ["title", "items", "date", "uid", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -83,6 +121,10 @@
       "schema": { "$ref": "#/entities/Saving" },
       "description": "Collection of all savings records"
     },
+    "/savings_accounts/{accountId}": {
+      "schema": { "$ref": "#/entities/SavingsAccount" },
+      "description": "Collection of all savings accounts"
+    },
     "/notes/{noteId}": {
       "schema": { "$ref": "#/entities/Note" },
       "description": "Collection of all personal notes"
@@ -90,6 +132,10 @@
     "/alarms/{alarmId}": {
       "schema": { "$ref": "#/entities/Alarm" },
       "description": "Collection of all alarms"
+    },
+    "/fards/{fardId}": {
+      "schema": { "$ref": "#/entities/Fard" },
+      "description": "Collection of all fard lists"
     }
   }
 }

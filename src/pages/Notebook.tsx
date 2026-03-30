@@ -40,8 +40,7 @@ export function Notebook({ onBack }: { onBack: () => void }) {
 
     const q = query(
       collection(db, 'notes'),
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc')
+      where('uid', '==', auth.currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -49,6 +48,14 @@ export function Notebook({ onBack }: { onBack: () => void }) {
       snapshot.forEach((doc) => {
         notesData.push({ id: doc.id, ...doc.data() } as Note);
       });
+      
+      // Sort client-side to avoid requiring a composite index
+      notesData.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA;
+      });
+      
       setNotes(notesData);
     }, (error) => {
       console.error("Error fetching notes:", error);

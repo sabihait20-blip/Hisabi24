@@ -32,8 +32,7 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
 
     const q = query(
       collection(db, 'transactions'),
-      where('uid', '==', auth.currentUser.uid),
-      orderBy('createdAt', 'desc')
+      where('uid', '==', auth.currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -41,6 +40,14 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
       snapshot.forEach((doc) => {
         transactionsData.push({ id: doc.id, ...doc.data() } as Transaction);
       });
+      
+      // Sort client-side to avoid requiring a composite index
+      transactionsData.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+        return timeB - timeA;
+      });
+      
       setHistory(transactionsData);
     }, (error) => {
       console.error("Error fetching transactions:", error);
