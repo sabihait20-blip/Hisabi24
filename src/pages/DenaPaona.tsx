@@ -2,19 +2,12 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, MoreVertical, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { toBenNum } from '../lib/bengali';
 import { db, auth } from '../lib/firebase';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
-
-interface DenaPaonaPerson {
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  paona: number;
-  dena: number;
-}
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, serverTimestamp } from 'firebase/firestore';
+import { DenaPaonaLedger, DenaPaonaPerson } from '../components/DenaPaonaLedger';
 
 export function DenaPaona({ onBack }: { onBack: () => void }) {
   const [people, setPeople] = useState<DenaPaonaPerson[]>([]);
+  const [selectedPerson, setSelectedPerson] = useState<DenaPaonaPerson | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -56,6 +49,13 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (selectedPerson) {
+      const updated = people.find(p => p.id === selectedPerson.id);
+      if (updated) setSelectedPerson(updated);
+    }
+  }, [people]);
 
   const totalPaona = people.reduce((sum, p) => sum + p.paona, 0);
   const totalDena = people.reduce((sum, p) => sum + p.dena, 0);
@@ -122,6 +122,10 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
     }
   };
 
+  if (selectedPerson) {
+    return <DenaPaonaLedger person={selectedPerson} onBack={() => setSelectedPerson(null)} />;
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20 relative">
       <div className="bg-purple-700 text-white px-4 py-4 flex items-center gap-4 sticky top-0 z-20 shadow-md">
@@ -155,7 +159,11 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
             </div>
           ) : (
             people.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 relative">
+              <div 
+                key={item.id} 
+                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 relative cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedPerson(item)}
+              >
                 <h3 className="font-bold text-gray-800 mb-3 pr-8">{item.name}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg font-medium">
@@ -174,7 +182,7 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
                 
                 <div className="absolute right-2 top-2">
                   <button 
-                    onClick={() => setActiveMenuId(activeMenuId === item.id ? null : item.id)}
+                    onClick={(e) => { e.stopPropagation(); setActiveMenuId(activeMenuId === item.id ? null : item.id); }}
                     className="text-gray-400 hover:text-purple-600 p-2 rounded-full hover:bg-gray-50 transition-colors"
                   >
                     <MoreVertical size={20} />
@@ -183,13 +191,13 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
                   {activeMenuId === item.id && (
                     <div className="absolute right-0 mt-1 w-32 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10 animate-in fade-in zoom-in duration-150">
                       <button 
-                        onClick={() => openEditModal(item)}
+                        onClick={(e) => { e.stopPropagation(); openEditModal(item); }}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-2 transition-colors"
                       >
                         <Edit2 size={16} /> এডিট
                       </button>
                       <button 
-                        onClick={() => { setDeleteId(item.id); setActiveMenuId(null); }}
+                        onClick={(e) => { e.stopPropagation(); setDeleteId(item.id); setActiveMenuId(null); }}
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
                       >
                         <Trash2 size={16} /> ডিলিট

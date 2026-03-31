@@ -156,6 +156,26 @@ service cloud.firestore {
              data.createdAt is timestamp;
     }
 
+    function isValidDenaPaonaTransaction(data) {
+      return hasRequiredFields(['personId', 'amount', 'type', 'uid', 'createdAt']) &&
+             data.personId is string && data.personId.size() > 0 &&
+             data.amount is number && data.amount >= 0 &&
+             data.type in ['paona_increase', 'paona_decrease', 'dena_increase', 'dena_decrease'] &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 500)) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidSavingsTransaction(data) {
+      return hasRequiredFields(['accountId', 'amount', 'type', 'uid', 'createdAt']) &&
+             data.accountId is string && data.accountId.size() > 0 &&
+             data.amount is number && data.amount >= 0 &&
+             data.type in ['deposit', 'withdrawal'] &&
+             (!('note' in data) || (data.note is string && data.note.size() <= 500)) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.createdAt is timestamp;
+    }
+
     match /transactions/{transactionId} {
       allow read: if isDocOwner();
       allow create: if isAuthenticated() && isValidTransaction(request.resource.data) && uidUnchanged();
@@ -170,6 +190,13 @@ service cloud.firestore {
       allow delete: if isDocOwner();
     }
 
+    match /denaPaonaTransactions/{txId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidDenaPaonaTransaction(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidDenaPaonaTransaction(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
     match /savings/{savingId} {
       allow read: if isDocOwner();
       allow create: if isAuthenticated() && isValidSaving(request.resource.data) && uidUnchanged();
@@ -181,6 +208,13 @@ service cloud.firestore {
       allow read: if isDocOwner();
       allow create: if isAuthenticated() && isValidSavingsAccount(request.resource.data) && uidUnchanged();
       allow update: if isDocOwner() && isValidSavingsAccount(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    match /savingsTransactions/{txId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidSavingsTransaction(request.resource.data) && uidUnchanged();
+      allow update: if isDocOwner() && isValidSavingsTransaction(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isDocOwner();
     }
 

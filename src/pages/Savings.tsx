@@ -4,10 +4,12 @@ import { toBenNum } from '../lib/bengali';
 import { useAuth } from '../lib/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { SavingsLedger, SavingsAccount } from '../components/SavingsLedger';
 
 export function Savings({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<SavingsAccount[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<SavingsAccount | null>(null);
   const [isAddingProfile, setIsAddingProfile] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -47,6 +49,13 @@ export function Savings({ onBack }: { onBack: () => void }) {
     
     return () => unsub();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedAccount) {
+      const updated = accounts.find(a => a.id === selectedAccount.id);
+      if (updated) setSelectedAccount(updated);
+    }
+  }, [accounts]);
 
   const resetForm = () => {
     setIsAddingProfile(false);
@@ -126,6 +135,10 @@ export function Savings({ onBack }: { onBack: () => void }) {
     });
   };
 
+  if (selectedAccount) {
+    return <SavingsLedger account={selectedAccount} onBack={() => setSelectedAccount(null)} />;
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20 relative">
       <div className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between sticky top-0 z-20 shadow-md">
@@ -151,7 +164,11 @@ export function Savings({ onBack }: { onBack: () => void }) {
             </div>
           ) : (
             accounts.map((acc) => (
-              <div key={acc.id} className="bg-white rounded-xl shadow-sm border border-purple-100 overflow-hidden relative group">
+              <div 
+                key={acc.id} 
+                className="bg-white rounded-xl shadow-sm border border-purple-100 overflow-hidden relative group cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => setSelectedAccount(acc)}
+              >
                 <div className="flex">
                   <div className="flex-1 p-4">
                     <h3 className="font-bold text-purple-700 mb-2 text-lg">{acc.name}</h3>
@@ -166,7 +183,7 @@ export function Savings({ onBack }: { onBack: () => void }) {
                     <p className="text-purple-700 font-bold text-lg">{toBenNum(acc.balance.toFixed(1))}</p>
                     <div className="absolute right-2 top-2">
                       <button 
-                        onClick={() => setActiveDropdown(activeDropdown === acc.id ? null : acc.id)}
+                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === acc.id ? null : acc.id); }}
                         className="text-purple-400 hover:text-purple-700 transition-colors p-1 rounded-full hover:bg-purple-100"
                       >
                         <MoreVertical size={20} />
@@ -174,16 +191,17 @@ export function Savings({ onBack }: { onBack: () => void }) {
                       
                       {activeDropdown === acc.id && (
                         <>
-                          <div className="fixed inset-0 z-10" onClick={() => setActiveDropdown(null)}></div>
+                          <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setActiveDropdown(null); }}></div>
                           <div className="absolute right-0 top-8 bg-white rounded-lg shadow-lg border border-gray-100 w-32 z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                             <button 
-                              onClick={() => openEditModal(acc)}
+                              onClick={(e) => { e.stopPropagation(); openEditModal(acc); }}
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-2"
                             >
                               <Edit size={14} /> এডিট
                             </button>
                             <button 
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setAccountToDelete(acc.id);
                                 setActiveDropdown(null);
                               }}
