@@ -12,6 +12,7 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        injectRegister: 'auto',
         includeAssets: ['icon.svg'],
         manifest: {
           name: 'হিসেব খাতা',
@@ -20,6 +21,7 @@ export default defineConfig(({mode}) => {
           theme_color: '#7e22ce',
           background_color: '#ffffff',
           display: 'standalone',
+          start_url: '/',
           icons: [
             {
               src: 'icon.svg',

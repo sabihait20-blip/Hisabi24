@@ -204,5 +204,10 @@ service cloud.firestore {
       allow update: if isDocOwner() && isValidFard(request.resource.data) && uidNotModified() && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if isDocOwner();
     }
+
+    match /admin_ads/{adId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admin can write from backend
+    }
   }
 }

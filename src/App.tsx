@@ -17,6 +17,7 @@ import { TakaGunun } from "./pages/TakaGunun";
 import { Settings } from "./pages/Settings";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import { Login } from "./components/Login";
+import { InstallPWA } from "./components/InstallPWA";
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState("home");
@@ -96,6 +97,7 @@ function AppContent() {
             <div className="h-full overflow-y-auto custom-scrollbar">
               {renderContent()}
             </div>
+            <InstallPWA />
           </div>
         </main>
       </div>
