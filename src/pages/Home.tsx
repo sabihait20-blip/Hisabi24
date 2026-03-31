@@ -97,6 +97,9 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
   
   const [activeAlarms, setActiveAlarms] = useState<any[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [totalDena, setTotalDena] = useState(0);
+  const [totalPaona, setTotalPaona] = useState(0);
+  const [totalSavings, setTotalSavings] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -127,9 +130,46 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
       setRecentTransactions(trans.slice(0, 3));
     });
 
+    const denaPaonaQuery = query(
+      collection(db, 'denaPaona'),
+      where('uid', '==', user.uid)
+    );
+    const unsubDenaPaona = onSnapshot(denaPaonaQuery, (snapshot) => {
+      let dena = 0;
+      let paona = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        dena += (Number(data.dena) || 0);
+        paona += (Number(data.paona) || 0);
+      });
+      console.log('DenaPaona fetched:', { dena, paona, docs: snapshot.size });
+      setTotalDena(dena);
+      setTotalPaona(paona);
+    }, (error) => {
+      console.error('Error fetching DenaPaona:', error);
+    });
+
+    const savingsQuery = query(
+      collection(db, 'savings_accounts'),
+      where('uid', '==', user.uid)
+    );
+    const unsubSavings = onSnapshot(savingsQuery, (snapshot) => {
+      let savings = 0;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        savings += (Number(data.balance) || 0);
+      });
+      console.log('Savings fetched:', { savings, docs: snapshot.size });
+      setTotalSavings(savings);
+    }, (error) => {
+      console.error('Error fetching Savings:', error);
+    });
+
     return () => {
       unsubAlarms();
       unsubTrans();
+      unsubDenaPaona();
+      unsubSavings();
     };
   }, [user]);
 
@@ -335,15 +375,15 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
         <div className="bg-white rounded-2xl shadow-xl p-5 flex justify-between text-center divide-x divide-gray-100 border border-gray-50">
           <div className="flex-1 px-2">
             <p className="text-sm text-gray-500 font-medium mb-1">দেনা</p>
-            <p className="text-purple-700 font-bold text-lg">{toBenNum(0)} ৳</p>
+            <p className="text-purple-700 font-bold text-lg">{toBenNum(totalDena.toLocaleString('en-IN'))} ৳</p>
           </div>
           <div className="flex-1 px-2">
             <p className="text-sm text-gray-500 font-medium mb-1">পাওনা</p>
-            <p className="text-red-500 font-bold text-lg">{toBenNum(0)} ৳</p>
+            <p className="text-red-500 font-bold text-lg">{toBenNum(totalPaona.toLocaleString('en-IN'))} ৳</p>
           </div>
           <div className="flex-1 px-2">
             <p className="text-sm text-gray-500 font-medium mb-1">সঞ্চয়</p>
-            <p className="text-blue-600 font-bold text-lg">{toBenNum(0)} ৳</p>
+            <p className="text-blue-600 font-bold text-lg">{toBenNum(totalSavings.toLocaleString('en-IN'))} ৳</p>
           </div>
         </div>
       </div>
