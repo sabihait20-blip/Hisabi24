@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MoreVertical, Plus, X, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Plus, X, Edit2, Trash2, Download } from 'lucide-react';
 import { toBenNum } from '../lib/bengali';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, serverTimestamp } from 'firebase/firestore';
 import { DenaPaonaLedger, DenaPaonaPerson } from '../components/DenaPaonaLedger';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { addBengaliFont } from '../lib/pdfFont';
 
 export function DenaPaona({ onBack }: { onBack: () => void }) {
   const [people, setPeople] = useState<DenaPaonaPerson[]>([]);
@@ -122,15 +125,57 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
     }
   };
 
+  const downloadSummaryPDF = async () => {
+    const doc = new jsPDF();
+    await addBengaliFont(doc);
+
+    doc.setFont('HindSiliguri', 'bold');
+    doc.setFontSize(22);
+    doc.text('দেনা পাওনা হিসাবের সারসংক্ষেপ', 14, 22);
+
+    doc.setFont('HindSiliguri', 'normal');
+    doc.setFontSize(12);
+    doc.text(`মোট পাওনা: ${toBenNum(totalPaona.toLocaleString('en-IN'))} টাকা`, 14, 32);
+    doc.text(`মোট দেনা: ${toBenNum(totalDena.toLocaleString('en-IN'))} টাকা`, 14, 38);
+    doc.text(`তারিখ: ${toBenNum(new Date().toLocaleDateString('bn-BD'))}`, 14, 44);
+
+    const tableData = people.map(p => [
+      p.name,
+      toBenNum(p.phone) || '-',
+      toBenNum(p.paona.toLocaleString('en-IN')),
+      toBenNum(p.dena.toLocaleString('en-IN'))
+    ]);
+
+    (doc as any).autoTable({
+      startY: 52,
+      head: [['নাম', 'ফোন', 'পাওনা (টাকা)', 'দেনা (টাকা)']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [126, 34, 206], font: 'HindSiliguri', fontStyle: 'bold' },
+      styles: { font: 'HindSiliguri' },
+    });
+
+    doc.save('দেনা_পাওনা_সারসংক্ষেপ.pdf');
+  };
+
   if (selectedPerson) {
     return <DenaPaonaLedger person={selectedPerson} onBack={() => setSelectedPerson(null)} />;
   }
 
   return (
     <div className="bg-gray-50 min-h-screen pb-20 relative">
-      <div className="bg-purple-700 text-white px-4 py-4 flex items-center gap-4 sticky top-0 z-20 shadow-md">
-        <button onClick={onBack}><ArrowLeft size={24} /></button>
-        <h1 className="text-lg font-bold">দেনা পাওনা হিসাব</h1>
+      <div className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between sticky top-0 z-20 shadow-md">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack}><ArrowLeft size={24} /></button>
+          <h1 className="text-lg font-bold">দেনা পাওনা হিসাব</h1>
+        </div>
+        <button 
+          onClick={downloadSummaryPDF}
+          className="p-2 hover:bg-purple-600 rounded-full transition-colors"
+          title="Download Summary PDF"
+        >
+          <Download size={24} />
+        </button>
       </div>
 
       <div className="p-4">

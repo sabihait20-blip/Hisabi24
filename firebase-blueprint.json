@@ -83,6 +83,34 @@
       },
       "required": ["name", "accountNumber", "balance", "uid", "createdAt"]
     },
+    "DenaPaonaTransaction": {
+      "title": "DenaPaona Transaction",
+      "description": "An individual transaction for a debt/receivable person",
+      "type": "object",
+      "properties": {
+        "personId": { "type": "string", "description": "ID of the person in denaPaona collection" },
+        "amount": { "type": "number", "description": "Amount of transaction" },
+        "type": { "type": "string", "enum": ["paona_increase", "paona_decrease", "dena_increase", "dena_decrease"], "description": "Type of transaction" },
+        "note": { "type": "string", "description": "Optional note" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["personId", "amount", "type", "uid", "createdAt"]
+    },
+    "SavingsTransaction": {
+      "title": "Savings Transaction",
+      "description": "An individual transaction for a savings account",
+      "type": "object",
+      "properties": {
+        "accountId": { "type": "string", "description": "ID of the account in savings_accounts collection" },
+        "amount": { "type": "number", "description": "Amount of transaction" },
+        "type": { "type": "string", "enum": ["deposit", "withdrawal"], "description": "Type of transaction" },
+        "note": { "type": "string", "description": "Optional note" },
+        "uid": { "type": "string", "description": "User ID of the owner" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["accountId", "amount", "type", "uid", "createdAt"]
+    },
     "Fard": {
       "title": "Fard",
       "description": "A shopping list or memo",
@@ -117,6 +145,10 @@
       "schema": { "$ref": "#/entities/DenaPaona" },
       "description": "Collection of all debts and receivables"
     },
+    "/denaPaonaTransactions/{txId}": {
+      "schema": { "$ref": "#/entities/DenaPaonaTransaction" },
+      "description": "Collection of individual dena/paona transactions"
+    },
     "/savings/{savingId}": {
       "schema": { "$ref": "#/entities/Saving" },
       "description": "Collection of all savings records"
@@ -124,6 +156,10 @@
     "/savings_accounts/{accountId}": {
       "schema": { "$ref": "#/entities/SavingsAccount" },
       "description": "Collection of all savings accounts"
+    },
+    "/savingsTransactions/{txId}": {
+      "schema": { "$ref": "#/entities/SavingsTransaction" },
+      "description": "Collection of individual savings account transactions"
     },
     "/notes/{noteId}": {
       "schema": { "$ref": "#/entities/Note" },

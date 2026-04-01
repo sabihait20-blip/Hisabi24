@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Cloud, Plus, MoreVertical, X, Wallet, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Cloud, Plus, MoreVertical, X, Wallet, Edit, Trash2, Download } from 'lucide-react';
 import { toBenNum } from '../lib/bengali';
 import { useAuth } from '../lib/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { SavingsLedger, SavingsAccount } from '../components/SavingsLedger';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { addBengaliFont } from '../lib/pdfFont';
 
 export function Savings({ onBack }: { onBack: () => void }) {
   const { user } = useAuth();
@@ -121,6 +124,38 @@ export function Savings({ onBack }: { onBack: () => void }) {
 
   const totalSavings = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
 
+  const downloadSummaryPDF = async () => {
+    const doc = new jsPDF();
+    await addBengaliFont(doc);
+
+    doc.setFont('HindSiliguri', 'bold');
+    doc.setFontSize(22);
+    doc.text('সঞ্চয়ী হিসাবের সারসংক্ষেপ', 14, 22);
+
+    doc.setFont('HindSiliguri', 'normal');
+    doc.setFontSize(12);
+    doc.text(`সর্বমোট সঞ্চয়: ${toBenNum(totalSavings.toLocaleString('en-IN'))} টাকা`, 14, 32);
+    doc.text(`তারিখ: ${toBenNum(new Date().toLocaleDateString('bn-BD'))}`, 14, 38);
+
+    const tableData = accounts.map(acc => [
+      acc.name,
+      toBenNum(acc.accountNumber),
+      acc.address || '-',
+      toBenNum(acc.balance.toLocaleString('en-IN'))
+    ]);
+
+    (doc as any).autoTable({
+      startY: 46,
+      head: [['হিসাবের নাম', 'অ্যাকাউন্ট নম্বর', 'ঠিকানা/শাখা', 'ব্যালেন্স (টাকা)']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [126, 34, 206], font: 'HindSiliguri', fontStyle: 'bold' },
+      styles: { font: 'HindSiliguri' },
+    });
+
+    doc.save('সঞ্চয়_হিসাব_সারসংক্ষেপ.pdf');
+  };
+
   const formatDate = (timestamp: any) => {
     if (!timestamp) return '';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -146,7 +181,16 @@ export function Savings({ onBack }: { onBack: () => void }) {
           <button onClick={onBack} className="hover:bg-purple-600 p-1 rounded-full transition-colors"><ArrowLeft size={24} /></button>
           <h1 className="text-lg font-bold">সঞ্চয়ী হিসাব</h1>
         </div>
-        <button className="hover:bg-purple-600 p-1 rounded-full transition-colors"><Cloud size={24} /></button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={downloadSummaryPDF}
+            className="hover:bg-purple-600 p-1 rounded-full transition-colors"
+            title="Download Summary PDF"
+          >
+            <Download size={24} />
+          </button>
+          <button className="hover:bg-purple-600 p-1 rounded-full transition-colors"><Cloud size={24} /></button>
+        </div>
       </div>
 
       <div className="p-4">

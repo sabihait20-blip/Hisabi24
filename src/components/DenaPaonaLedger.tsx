@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react';
 import { toBenNum } from '../lib/bengali';
 import { db, auth } from '../lib/firebase';
 import { collection, query, where, onSnapshot, writeBatch, doc, serverTimestamp } from 'firebase/firestore';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { addBengaliFont } from '../lib/pdfFont';
 
 export interface DenaPaonaPerson {
   id: string;
@@ -124,14 +127,67 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
     return date.toLocaleDateString('bn-BD', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
+  const downloadPDF = async () => {
+    const doc = new jsPDF();
+    
+    // Add Bengali font support
+    await addBengaliFont(doc);
+    
+    // Header
+    doc.setFont('HindSiliguri', 'bold');
+    doc.setFontSize(22);
+    doc.text('লেনদেনের হিসাব খাতা', 14, 22);
+    
+    doc.setFont('HindSiliguri', 'normal');
+    doc.setFontSize(12);
+    doc.text(`নাম: ${person.name}`, 14, 32);
+    doc.text(`ফোন: ${toBenNum(person.phone) || 'নেই'}`, 14, 38);
+    doc.text(`ঠিকানা: ${person.address || 'নেই'}`, 14, 44);
+    doc.text(`মোট পাওনা: ${toBenNum(person.paona.toLocaleString('en-IN'))} টাকা`, 14, 50);
+    doc.text(`মোট দেনা: ${toBenNum(person.dena.toLocaleString('en-IN'))} টাকা`, 14, 56);
+    doc.text(`তারিখ: ${toBenNum(new Date().toLocaleDateString('bn-BD'))}`, 14, 62);
+
+    // Table
+    const tableData = transactions.map(tx => {
+      const details = getTxDetails(tx.type);
+      const date = tx.createdAt?.toDate ? tx.createdAt.toDate().toLocaleDateString('bn-BD') : 'N/A';
+      return [
+        toBenNum(date),
+        details.label.split('(')[0].trim(),
+        toBenNum(tx.amount.toLocaleString('en-IN')),
+        tx.note || '-'
+      ];
+    });
+
+    (doc as any).autoTable({
+      startY: 70,
+      head: [['তারিখ', 'ধরন', 'পরিমাণ (টাকা)', 'নোট']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [126, 34, 206], font: 'HindSiliguri', fontStyle: 'bold' },
+      styles: { font: 'HindSiliguri' },
+    });
+
+    doc.save(`${person.name}_হিসাব.pdf`);
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20 relative">
-      <div className="bg-purple-700 text-white px-4 py-4 flex items-center gap-4 sticky top-0 z-20 shadow-md">
-        <button onClick={onBack}><ArrowLeft size={24} /></button>
-        <div>
-          <h1 className="text-lg font-bold">{person.name}</h1>
-          <p className="text-xs opacity-80">{toBenNum(person.phone) || 'ফোন নম্বর নেই'}</p>
+      <div className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between sticky top-0 z-20 shadow-md">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack}><ArrowLeft size={24} /></button>
+          <div>
+            <h1 className="text-lg font-bold">{person.name}</h1>
+            <p className="text-xs opacity-80">{toBenNum(person.phone) || 'ফোন নম্বর নেই'}</p>
+          </div>
         </div>
+        <button 
+          onClick={downloadPDF}
+          className="p-2 hover:bg-purple-600 rounded-full transition-colors"
+          title="Download PDF"
+        >
+          <Download size={24} />
+        </button>
       </div>
 
       <div className="p-4">

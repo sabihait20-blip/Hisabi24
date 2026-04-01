@@ -55,6 +55,26 @@ service cloud.firestore {
     //   - createdAt: timestamp (required, immutable)
     //   - updatedAt: timestamp (required)
     //
+    // Collection: denaPaonaTransactions
+    // Document ID: auto-generated
+    // Fields:
+    //   - personId: string (required)
+    //   - amount: number (required, >= 0)
+    //   - type: string (required, 'paona_increase', 'paona_decrease', 'dena_increase', 'dena_decrease')
+    //   - note: string (optional, <= 500 chars)
+    //   - uid: string (required, immutable)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: savingsTransactions
+    // Document ID: auto-generated
+    // Fields:
+    //   - accountId: string (required)
+    //   - amount: number (required, >= 0)
+    //   - type: string (required, 'deposit' or 'withdrawal')
+    //   - note: string (optional, <= 500 chars)
+    //   - uid: string (required, immutable)
+    //   - createdAt: timestamp (required, immutable)
+    //
     // ===============================================================
 
     // Helper Functions
