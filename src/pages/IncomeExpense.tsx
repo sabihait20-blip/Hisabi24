@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Filter, X, Edit2, Trash2, Download } from 'lucide-react';
 import { toBenNum } from '../lib/bengali';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+import { addBengaliFont } from '../lib/pdfFont';
 
 type TransactionType = 'income' | 'expense';
 
@@ -127,11 +130,54 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
     }
   };
 
+  const downloadPDF = async () => {
+    const doc = new jsPDF();
+    await addBengaliFont(doc);
+
+    doc.setFont('HindSiliguri', 'bold');
+    doc.setFontSize(22);
+    doc.text('আয়-ব্যয় হিসাবের খাতা', 14, 22);
+
+    doc.setFont('HindSiliguri', 'normal');
+    doc.setFontSize(12);
+    doc.text(`মোট আয়: ${toBenNum(currentMonthIncome.toLocaleString('en-IN'))} টাকা`, 14, 32);
+    doc.text(`মোট ব্যয়: ${toBenNum(currentMonthExpense.toLocaleString('en-IN'))} টাকা`, 14, 38);
+    doc.text(`মোট সঞ্চয়: ${toBenNum(currentMonthSavings.toLocaleString('en-IN'))} টাকা`, 14, 44);
+    doc.text(`তারিখ: ${toBenNum(new Date().toLocaleDateString('bn-BD'))}`, 14, 50);
+
+    const tableData = history.map(item => [
+      toBenNum(item.date),
+      item.title,
+      item.type === 'income' ? 'আয়' : 'ব্যয়',
+      toBenNum(item.amount.toLocaleString('en-IN'))
+    ]);
+
+    (doc as any).autoTable({
+      startY: 58,
+      head: [['তারিখ', 'বিবরণ', 'ধরন', 'পরিমাণ (টাকা)']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [126, 34, 206], font: 'HindSiliguri', fontStyle: 'bold' },
+      styles: { font: 'HindSiliguri' },
+    });
+
+    doc.save('আয়_ব্যয়_হিসাব.pdf');
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen pb-20 relative">
-      <div className="bg-purple-700 text-white px-4 py-4 flex items-center gap-4 sticky top-0 z-20 shadow-md">
-        <button onClick={onBack}><ArrowLeft size={24} /></button>
-        <h1 className="text-lg font-bold">হিসেব খাতা</h1>
+      <div className="bg-purple-700 text-white px-4 py-4 flex items-center justify-between sticky top-0 z-20 shadow-md">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack}><ArrowLeft size={24} /></button>
+          <h1 className="text-lg font-bold">হিসেব খাতা</h1>
+        </div>
+        <button 
+          onClick={downloadPDF}
+          className="p-2 hover:bg-purple-600 rounded-full transition-colors"
+          title="Download PDF"
+        >
+          <Download size={24} />
+        </button>
       </div>
 
       <div className="p-4">
