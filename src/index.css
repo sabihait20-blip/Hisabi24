@@ -62,4 +62,55 @@
   .dark .custom-scrollbar::-webkit-scrollbar-thumb {
     background-color: #374151;
   }
+
+  @keyframes border-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .google-animated-border {
+    position: relative;
+    background: var(--card);
+    z-index: 0;
+    border: 1px solid var(--border) !important;
+    transition: all 0.3s ease;
+  }
+
+  .google-animated-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0%,
+      transparent 75%,
+      #a855f7 85%,
+      #3b82f6 95%,
+      #a855f7 100%
+    );
+    border-radius: inherit;
+    z-index: -1;
+    animation: border-rotate 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .google-animated-border:hover {
+    border-color: transparent !important;
+    box-shadow: 0 10px 25px -5px rgba(168, 85, 247, 0.1), 0 8px 10px -6px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .google-animated-border:hover::before {
+    opacity: 1;
+  }
+
+  .google-animated-border::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: inherit;
+    border-radius: inherit;
+    z-index: -1;
+  }
 }

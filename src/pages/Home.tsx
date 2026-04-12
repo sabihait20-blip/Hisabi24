@@ -282,7 +282,7 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
                 <button
                   key={link.id}
                   onClick={() => { onNavigate(link.id); setIsSidebarOpen(false); }}
-                  className="w-full px-3 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 rounded-xl transition-colors"
+                  className="w-full px-3 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 rounded-xl transition-colors google-animated-border"
                 >
                   <div className={`p-2 rounded-xl ${link.bg} ${link.color}`}>
                     <link.icon size={18} />
@@ -372,7 +372,7 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
       </div>
       
       <div className="-mt-10 px-6 relative z-10">
-        <div className="bg-white rounded-2xl shadow-xl p-5 flex justify-between text-center divide-x divide-gray-100 border border-gray-50">
+        <div className="bg-white rounded-2xl shadow-xl p-5 flex justify-between text-center divide-x divide-gray-100 border border-gray-50 google-animated-border">
           <div className="flex-1 px-2">
             <p className="text-sm text-gray-500 font-medium mb-1">দেনা</p>
             <p className="text-purple-700 font-bold text-lg">{toBenNum(totalDena.toLocaleString('en-IN'))} ৳</p>
@@ -407,7 +407,7 @@ export function Home({ onNavigate }: { onNavigate: (page: string) => void }) {
               <button 
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-purple-50 hover:shadow-md hover:border-purple-200 transition-all group"
+                className="flex flex-col items-center justify-center p-4 bg-white rounded-2xl shadow-sm border border-purple-50 hover:shadow-md hover:border-purple-200 transition-all group google-animated-border"
               >
                 <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-3 group-hover:bg-purple-100 transition-colors">
                   <Icon size={24} className="text-purple-600" />
