@@ -23,6 +23,7 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
   const [modalType, setModalType] = useState<TransactionType>('income');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -88,8 +89,9 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.amount || !auth.currentUser) return;
+    if (!formData.title || !formData.amount || !auth.currentUser || loading) return;
     
+    setLoading(true);
     const [year, month, day] = formData.date.split('-');
     const formattedDate = `${day}/${month}/${year}`;
 
@@ -116,17 +118,21 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
       setEditingId(null);
     } catch (error) {
       console.error("Error saving transaction:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const confirmDelete = async () => {
-    if (deleteId) {
-      try {
-        await deleteDoc(doc(db, 'transactions', deleteId));
-        setDeleteId(null);
-      } catch (error) {
-        console.error("Error deleting transaction:", error);
-      }
+    if (!deleteId || loading) return;
+    setLoading(true);
+    try {
+      await deleteDoc(doc(db, 'transactions', deleteId));
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -345,9 +351,10 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
                 </button>
                 <button 
                   onClick={handleSave}
-                  className={`flex-1 py-2.5 text-white font-bold rounded-xl ${modalType === 'income' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-500 hover:bg-red-600'}`}
+                  disabled={loading || !formData.title || !formData.amount}
+                  className={`flex-1 py-2.5 text-white font-bold rounded-xl flex items-center justify-center ${modalType === 'income' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-500 hover:bg-red-600'} disabled:opacity-50`}
                 >
-                  {editingId ? 'আপডেট করুন' : 'সংরক্ষণ করুন'}
+                  {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (editingId ? 'আপডেট করুন' : 'সংরক্ষণ করুন')}
                 </button>
               </div>
             </div>
@@ -367,15 +374,17 @@ export function IncomeExpense({ onBack }: { onBack: () => void }) {
             <div className="flex gap-3">
               <button 
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 বাতিল
               </button>
               <button 
                 onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
-                মুছে ফেলুন
+                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'মুছে ফেলুন'}
               </button>
             </div>
           </div>

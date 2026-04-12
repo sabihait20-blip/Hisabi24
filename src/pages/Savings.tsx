@@ -17,13 +17,13 @@ export function Savings({ onBack }: { onBack: () => void }) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
   // Form state
   const [name, setName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [address, setAddress] = useState('');
   const [initialBalance, setInitialBalance] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -71,7 +71,7 @@ export function Savings({ onBack }: { onBack: () => void }) {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !accountNumber || !user) return;
+    if (!name || !accountNumber || !user || loading) return;
     
     setLoading(true);
     try {
@@ -112,13 +112,16 @@ export function Savings({ onBack }: { onBack: () => void }) {
   };
 
   const confirmDelete = async () => {
-    if (!accountToDelete) return;
+    if (!accountToDelete || loading) return;
+    setLoading(true);
     try {
       await deleteDoc(doc(db, 'savings_accounts', accountToDelete));
       setAccountToDelete(null);
     } catch (error) {
       console.error("Error deleting account:", error);
       alert("অ্যাকাউন্ট মুছতে সমস্যা হয়েছে।");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -341,7 +344,8 @@ export function Savings({ onBack }: { onBack: () => void }) {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
                   বাতিল
                 </button>
@@ -374,15 +378,17 @@ export function Savings({ onBack }: { onBack: () => void }) {
             <div className="flex gap-3">
               <button
                 onClick={() => setAccountToDelete(null)}
-                className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="flex-1 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 বাতিল
               </button>
               <button
                 onClick={confirmDelete}
-                className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors"
+                disabled={loading}
+                className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
-                মুছে ফেলুন
+                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'মুছে ফেলুন'}
               </button>
             </div>
           </div>

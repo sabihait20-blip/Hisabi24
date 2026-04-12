@@ -1,4 +1,5 @@
-export const toBenNum = (num: number | string): string => {
+export const toBenNum = (num: number | string | null | undefined): string => {
+  if (num === null || num === undefined) return '';
   const benDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
   return num.toString().replace(/\d/g, (d) => benDigits[parseInt(d)]);
 };

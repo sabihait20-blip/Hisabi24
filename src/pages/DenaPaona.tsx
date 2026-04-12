@@ -15,6 +15,7 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -83,8 +84,9 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !auth.currentUser) return;
+    if (!formData.name || !auth.currentUser || loading) return;
     
+    setLoading(true);
     try {
       if (editingId) {
         const docRef = doc(db, 'denaPaona', editingId);
@@ -110,18 +112,22 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
       setEditingId(null);
     } catch (error) {
       console.error("Error saving person:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const confirmDelete = async () => {
-    if (deleteId) {
-      try {
-        await deleteDoc(doc(db, 'denaPaona', deleteId));
-        setDeleteId(null);
-        setActiveMenuId(null);
-      } catch (error) {
-        console.error("Error deleting person:", error);
-      }
+    if (!deleteId || loading) return;
+    setLoading(true);
+    try {
+      await deleteDoc(doc(db, 'denaPaona', deleteId));
+      setDeleteId(null);
+      setActiveMenuId(null);
+    } catch (error) {
+      console.error("Error deleting person:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -334,10 +340,10 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
                 </button>
                 <button 
                   onClick={handleSave}
-                  disabled={!formData.name}
-                  className="flex-1 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!formData.name || loading}
+                  className="flex-1 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {editingId ? 'আপডেট করুন' : 'সংরক্ষণ করুন'}
+                  {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : (editingId ? 'আপডেট করুন' : 'সংরক্ষণ করুন')}
                 </button>
               </div>
             </div>
@@ -357,15 +363,17 @@ export function DenaPaona({ onBack }: { onBack: () => void }) {
             <div className="flex gap-3">
               <button 
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 বাতিল
               </button>
               <button 
                 onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
-                মুছে ফেলুন
+                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'মুছে ফেলুন'}
               </button>
             </div>
           </div>

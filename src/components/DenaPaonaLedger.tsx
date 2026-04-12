@@ -21,6 +21,7 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [txForm, setTxForm] = useState({ amount: '', type: 'paona_increase', note: '' });
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -43,10 +44,11 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
   }, [person.id]);
 
   const handleSave = async () => {
-    if (!txForm.amount || !auth.currentUser) return;
+    if (!txForm.amount || !auth.currentUser || loading) return;
     const amount = Number(txForm.amount);
     if (amount <= 0) return;
 
+    setLoading(true);
     try {
       const batch = writeBatch(db);
       const txRef = doc(collection(db, 'denaPaonaTransactions'));
@@ -79,11 +81,14 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
       setTxForm({ amount: '', type: 'paona_increase', note: '' });
     } catch (error) {
       console.error("Error saving transaction:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const confirmDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteId || loading) return;
+    setLoading(true);
     try {
       const tx = transactions.find(t => t.id === deleteId);
       if (!tx) return;
@@ -108,6 +113,8 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
       setDeleteId(null);
     } catch (error) {
       console.error("Error deleting transaction:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -299,10 +306,10 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
                 </button>
                 <button 
                   onClick={handleSave}
-                  disabled={!txForm.amount}
-                  className="flex-1 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!txForm.amount || loading}
+                  className="flex-1 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  সংরক্ষণ করুন
+                  {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'সংরক্ষণ করুন'}
                 </button>
               </div>
             </div>
@@ -322,15 +329,17 @@ export function DenaPaonaLedger({ person, onBack }: { person: DenaPaonaPerson, o
             <div className="flex gap-3">
               <button 
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
                 বাতিল
               </button>
               <button 
                 onClick={confirmDelete}
-                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+                disabled={loading}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center"
               >
-                মুছে ফেলুন
+                {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'মুছে ফেলুন'}
               </button>
             </div>
           </div>
